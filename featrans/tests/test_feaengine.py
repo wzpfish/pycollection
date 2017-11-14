@@ -33,19 +33,27 @@ class TestFeaengine(unittest.TestCase):
             (1, [(0,0.5), (4,1)]),
             (1, [(5,1)])
         ]
-        self.feaengine = FeaEngine(None)
+        self.feaengine = FeaEngine()
 
     def test_set_transformers(self):
-        self.feaengine.set_transformers(self.transformers)
+        self.feaengine.update_transformers(self.transformers)
         self.assertEqual(3, len(self.feaengine.transformers))
     
     def test_transform(self):
-        self.feaengine.set_transformers(self.transformers)
+        self.feaengine.update_transformers(self.transformers)
         self.feaengine.load(self.df)
         self.__internal_test_transform(self.feaengine, True)
         self.__internal_test_transform(self.feaengine, False)
     
+    def test_feature_name(self):
+        self.feaengine.update_transformers(self.transformers).update_columns(["label", "fea1", "fea2"])
+        self.feaengine.load(self.df)
+        feaname = self.feaengine.feature_name(3)
+        self.assertEqual(feaname, "fea1-e")
+
     def __internal_test_transform(self, engine, is_minmax):
+        columns = ["label", "fea1", "fea2"]
+        engine.update_columns(columns)
         for feaname, _ in self.data.items():
             if feaname not in ["label", "ignore"]:
                 normalizer = MinMaxNorm() if is_minmax else None
@@ -57,10 +65,10 @@ class TestFeaengine(unittest.TestCase):
 
     def test_save_load(self):
         f = "test.txt"
-        self.feaengine.set_transformers(self.transformers)
+        self.feaengine.update_transformers(self.transformers)
         self.feaengine.load(self.df)
         self.feaengine.save_engine(f)
-        feaengine2 = FeaEngine(None)
+        feaengine2 = FeaEngine()
         feaengine2.load_engine(f)
         self.__internal_test_transform(feaengine2, True)
         self.__internal_test_transform(feaengine2, False)

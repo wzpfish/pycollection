@@ -12,7 +12,7 @@ class TestTextTransformer(unittest.TestCase):
         self.column = pandas.Series(["a,a,c", "a,c,d", "c,e,f", "a,f", ""])
 
     def test_load(self):
-        self.transformer.load(self.column, 0)
+        self.transformer.load(self.column)
         self.assertEqual(5, self.transformer.num_features)
         self.assertEqual(5, self.transformer.num_samples)
     
@@ -25,7 +25,7 @@ class TestTextTransformer(unittest.TestCase):
             ("", [], [])
         ]
 
-        self.transformer.load(self.column, 0)
+        self.transformer.load(self.column)
         self.transformer.set_normalizer(None)
         for text, expected, _ in cases:
             features = self.transformer.transform(text)
@@ -44,9 +44,9 @@ class TestNumericTransformer(unittest.TestCase):
         self.column = pandas.Series(["1", "2", "3", "", "3"])
     
     def test_load(self):
-        self.transformer.load(self.column, 5)
+        self.transformer.load(self.column)
         self.assertEqual(1, self.transformer.num_features)
-        self.assertEqual(5, self.transformer.fea2idx[self.column.name])
+        self.assertEqual(0, self.transformer.fea2idx[self.column.name])
 
     def test_transform(self):
         cases = [
@@ -56,7 +56,7 @@ class TestNumericTransformer(unittest.TestCase):
             ("", [(0,self.d)], []),
             ("3", [(0,3)], [(0,1.0)])
         ]
-        self.transformer.load(self.column, 0)
+        self.transformer.load(self.column)
         self.transformer.set_normalizer(None)
         for text, expected, _ in cases:
             features = self.transformer.transform(text)
@@ -73,18 +73,18 @@ class TestCategoryTransformer(unittest.TestCase):
         self.column = pandas.Series(["1", "2", "", "3"])
 
     def test_load(self):
-        self.transformer.load(self.column, 0)
+        self.transformer.load(self.column)
         self.assertEqual(3, self.transformer.num_features)
     
     def test_transform(self):
-        init_idx = 3
+        init_idx = 0
         cases = [
             ("1", [(init_idx+0,1)]),
             ("2", [(init_idx+1,1)]),
             ("3", [(init_idx+2,1)]),
             ("", [])
         ]
-        self.transformer.load(self.column, init_idx)
+        self.transformer.load(self.column)
         for text, expected in cases:
             features = self.transformer.transform(text)
             self.assertListEqual(expected, features)

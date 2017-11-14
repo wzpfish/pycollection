@@ -47,14 +47,15 @@ class CategoryTransformer(FeatureTransformer):
     def __init__(self):
         super().__init__()
 
-    def load(self, column, init_feaidx):
+    def load(self, column):
         fea2idx = dict()
         for text in column:
             text = text.strip()
             if not text:
                 continue
             if text not in fea2idx:
-                fea2idx[text] = len(fea2idx) + init_feaidx
+                idx = len(fea2idx)
+                fea2idx[text] = idx
 
         self.column_name = column.name
         self.fea2idx = fea2idx
@@ -75,7 +76,7 @@ class TextTransformer(FeatureTransformer):
         self.normalizer = normalizer
         self.sep_pattern = re.compile(sep) if sep else None
 
-    def load(self, column, init_feaidx):
+    def load(self, column):
         fea2idx = dict()
         fea2values = defaultdict(list)
         for text in column:
@@ -84,7 +85,7 @@ class TextTransformer(FeatureTransformer):
             counter = Counter(terms)
             for term, count in counter.items():
                 if term not in fea2idx:
-                    fea2idx[term] = len(fea2idx) + init_feaidx
+                    fea2idx[term] = len(fea2idx)
                 fea2values[term].append(count)
 
         assert len(fea2idx) == len(fea2values)
@@ -117,7 +118,7 @@ class NumericTransformer(FeatureTransformer):
         self.default_value = default_value
         self.normalizer = normalizer
 
-    def load(self, column, init_feaidx):
+    def load(self, column):
         values = []
         for text in column:
             text = text.strip()
@@ -125,8 +126,8 @@ class NumericTransformer(FeatureTransformer):
             if text:
                 value = float(text)
             values.append(value)
-       
-        self.fea2idx[column.name] = init_feaidx
+
+        self.fea2idx[column.name] = 0
         self.fea2values[column.name] = values
         self.column_name = column.name
         self.num_features = len(self.fea2idx)
