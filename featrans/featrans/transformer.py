@@ -3,9 +3,13 @@ from collections import Counter, defaultdict
 import re
 import numpy
 import time
+import sys
+
+from utils import decorator
 
 
 class LabelTransformer(object):
+    @decorator.memory()
     def transform(self, text):
         text = text.strip()
         if not text:
@@ -62,6 +66,7 @@ class CategoryTransformer(FeatureTransformer):
         self.num_features = len(fea2idx)
         self.num_samples = len(column)
 
+    @decorator.memory()
     def transform(self, text):
         text = text.strip()
         if text in self.fea2idx:
@@ -96,6 +101,7 @@ class TextTransformer(FeatureTransformer):
         self.num_samples = len(column)
         self._init_normalizer()
     
+    @decorator.memory()
     def transform(self, text):
         features = []
         terms = re.split(self.sep_pattern, text) if self.sep_pattern else [text]
@@ -134,6 +140,7 @@ class NumericTransformer(FeatureTransformer):
         self.num_samples = len(column)
         self._init_normalizer()
     
+    @decorator.memory()
     def transform(self, text):
         text = text.strip()
         value = self.default_value

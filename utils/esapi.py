@@ -1,7 +1,6 @@
 # coding:utf-8
 """
-Elasticsearch 接口封装
-连接，爬取，备份， 搜索， 更新
+Elasticsearch convenient functions.
 """
 from elasticsearch import Elasticsearch
 import elasticsearch.helpers
@@ -27,23 +26,9 @@ class EsHelper(object):
             self._uri = uri
         self._client = Elasticsearch(self._uri, http_auth=(self._user, self._password), timeout=timeout)
 
-    def crawl_fresh(self, index, day_range=1, query=None, need_id=False):
+    def scan(self, index, query, need_id=False):
         """Crawl fresh data.
         """
-        if query is None:
-            query = {
-                "query": {
-                    "range": {
-                        "internal_fetch_time": {
-                            "gte": "now-{}d/d".format(day_range),
-                            "lte":  "now/d"
-                        }
-                    }
-                },
-                "_source": {
-                    "includes": ["_id"]
-                }
-            }
         for e in elasticsearch.helpers.scan(self._client, index=index, query=query, size=100, request_timeout=30000):
             if not need_id:
                 yield e['_source']
@@ -91,11 +76,13 @@ class EsHelper(object):
         """
         return [doc['_source'] for doc in self._client.search(index=index, body=query)['hits']['hits']]
 
-    def batch_upsert(self, index, _type, id_field, datas):
-        elasticsearch.helpers.bulk(
-            self._client,
-            [{"_source": data, "_id": data[id_field], "_type": _type, "_index": index} for data in datas],
-            index=index)
+    def batch_upsert(self, index, _type, ids, docs):
+        """return (success number, list of errors)
+        """
+        actions = [{"_source": doc, "_id": _id, "_type": _type, "_index": index}
+                for _id, doc in zip(ids, docs)]
+        return elasticsearch.helpers.bulk(
+                self._client, actions, raise_on_error=False)
 
     def batch_update(self, index, _type, ids, docs):
         assert len(ids) == len(docs)

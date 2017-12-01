@@ -2,22 +2,43 @@
 from functools import wraps
 from collections import OrderedDict
 import time
+import os
+import pickle
 
 
-def memory(fn):
-    """Used to cache function result.
+def memory(cache_file=None, readonly=False):
+    """Used to cache function result, using cache_file to cache the results.
     Example:
     @memory
     def compute(*args):
         return time_cost_compute(*args)
+    @memory("cache.txt")
+    def compute(*args):
+        return time_cost_compute(*args)
     """
-    @wraps(fn)
-    def wrapper(*args):
-        if args not in wrapper.cache:
-            wrapper.cache[args] = fn(*args)
-        return wrapper.cache[args]
-    wrapper.cache = dict()
-    return wrapper
+    def saver(filename, cache):
+        with open(filename, "wb") as fout:
+            pickle.dump(cache, fout)
+        
+    cache = dict()
+    if cache_file:
+        if os.path.exists(cache_file):
+            with open(cache_file, "rb") as fin:
+                cache = pickle.load(fin)
+        if not readonly:
+            import atexit
+            atexit.register(saver, cache_file, cache)
+        
+    def main(fn):
+        @wraps(fn)
+        def wrapper(*args):
+            if args not in wrapper.cache:
+                wrapper.cache[args] = fn(*args)
+            return wrapper.cache[args]
+        wrapper.cache = cache
+        return wrapper
+    
+    return main
 
 
 def collector(c_func):

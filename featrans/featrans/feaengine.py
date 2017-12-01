@@ -6,6 +6,8 @@ import _pickle as pickle
 from .transformer import *
 from .normalizer import *
 
+logger = logging.getLogger(__name__)
+
 class FeaEngine(object):
     def __init__(self):
         self.transformers = None
@@ -101,8 +103,8 @@ class FeaEngine(object):
                 continue
             transformer.load(df[feaname])
             fea_count += transformer.num_features
-            logging.info("Load %d features for column %s", transformer.num_features, feaname)
-        logging.info("%d features loaded.", fea_count)
+            logger.info("Load %d features for column %s", transformer.num_features, feaname)
+        logger.info("%d features loaded.", fea_count)
 
     def transform_row(self, row):
         label = None
